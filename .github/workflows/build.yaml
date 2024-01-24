@@ -1,15 +1,30 @@
 name: build
 
 on:
+  workflow_dispatch:
   push:
     branches:
-      - "main"
+      - main
+    paths-ignore:
+      - '.gitignore'
+      - 'README.md'
 
 permissions:
   packages: write
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  docker:
+  build-docker:
+    strategy:
+      matrix:
+        target:
+          - linux/amd64
+          - linux/arm64
+          - linux/riscv64
+    name: build-docker, ${{ matrix.target }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -28,6 +43,6 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          platforms: linux/amd64,linux/arm64,linux/riscv64
+          platforms: ${{ matrix.target }}
           push: true
           tags: ghcr.io/bekcpear/gentoo-env:latest
