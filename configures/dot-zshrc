@@ -1,0 +1,72 @@
+#
+# @author: Ryan Tsien <i@bitbili.net>
+#
+
+# Lines configured by zsh-newuser-install
+setopt extended_history
+HISTFILE=~/.histfile
+HISTSIZE=100000
+SAVEHIST=10000
+bindkey -v
+KEYTIMEOUT=1
+# End of lines configured by zsh-newuser-install
+
+zstyle ':completion:*' completer _complete _ignored _approximate
+zstyle ':completion:*' expand prefix
+zstyle ':completion:*' format 'Completing %d'
+zstyle ':completion:*:descriptions' format '%U%d%b%u'
+zstyle ':completion:*:warnings' format '%BSorry, no matches for: %d%b'
+zstyle ':completion:*' group-name ''
+zstyle ':completion:*' ignore-parents parent pwd
+zstyle ':completion:*' insert-unambiguous true
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+zstyle ':completion:*' list-prompt '%SAt %p: Hit TAB for more, or the character to insert%s'
+zstyle ':completion:*' list-suffixes true
+zstyle ':completion:*' matcher-list '' 'm:{[:lower:]}={[:upper:]}'
+zstyle ':completion:*' max-errors 0 not-numeric
+zstyle ':completion:*' original true
+zstyle ':completion:*' preserve-prefix '//[^/]##/'
+zstyle ':completion:*' squeeze-slashes true
+zstyle :compinstall filename '~/.zshrc'
+
+# End of lines added by compinstall
+autoload -Uz compinit promptinit vcs_info
+compinit
+promptinit
+
+bindkey "^R" history-incremental-search-backward
+
+#auto change current directory( /etc instead of cd /etc )
+setopt autocd
+#satisfy standard bash-like globbing
+setopt extendedglob
+
+#highlight
+source /usr/share/zsh/site-functions/zsh-syntax-highlighting.zsh
+#autosuggestions
+source ~/.local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+
+zstyle ':vcs_info:*' enable git
+zstyle ':vcs_info:*' check-for-staged-changes true
+zstyle ':vcs_info:*' stagedstr "*"
+zstyle ':vcs_info:*' actionformats '%K{233} @%b%F{2}%c%f %k%K{3} %F{233}%a%f %k'
+zstyle ':vcs_info:*' formats '%K{233} @%b%F{2}%c%f %k'
+
+precmd() {
+	# prepare vcs info
+	vcs_info
+	if [[ -n ${vcs_info_msg_0_} ]]; then
+		RPROMPT="${vcs_info_msg_0_} ${D_RPROMPT}"
+	else
+		RPROMPT="${D_RPROMPT}"
+	fi
+}
+
+setopt prompt_subst
+PROMPT='%F{238}=== GENTOO-ENV ===${(l:$((${COLUMNS}-19))::·:):-}%f\
+%F{253} %n@%m :%y %f%F{227}%B%~ %(?..%F{196}%? %f)%#%b%f '
+D_RPROMPT=" %F{238}%* @%D{%f}%f"
+
+#export SHELLCHECK_ARGUMENTS="-e 2120 -e 2317"
+alias ls="ls --color=auto"
+alias vim="nvim"

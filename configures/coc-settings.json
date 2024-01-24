@@ -1,0 +1,18 @@
+{
+	"suggest.noselect": true,
+	"coc.source.file.ignoreHidden": false,
+	"diagnostic.checkCurrentLine": false,
+	"diagnostic.displayByAle": false,
+	"diagnostic.enableHighlightLineNumber": false,
+	"diagnostic.hintSign": "·",
+	"diagnostic.infoSign": "ℹ",
+	"diagnostic.warningSign": "⚠",
+	"diagnostic.errorSign": "✘",
+	"languageserver": {
+		"bash": {
+			"command": "bash-language-server",
+			"args": ["start"],
+			"filetypes": ["sh", "ebuild", "eclass", "initd"]
+		}
+	}
+}
