@@ -32,15 +32,14 @@ else
 	for _platform in "${_PLATFORMS[@]}"; do
 		_exists=0
 		for platform in "${PLATFORMS[@]}"; do
-			if [[ $platform == "$_platform" ]]; then
+			if [[ ${platform%%:*} == "$_platform" ]]; then
 				_exists=1
+				VALID_PLATFORMS+=( "$platform" )
 				break
 			fi
 		done
 		if [[ $_exists == 0 ]]; then
 			echo "non existing platform '$_platform', ignore it." >&2
-		else
-			VALID_PLATFORMS+=( "$_platform" )
 		fi
 	done
 fi
@@ -50,10 +49,14 @@ if [[ ${#VALID_PLATFORMS[@]} == 0 ]]; then
 	exit 1
 fi
 
+_default_runson="\"ubuntu-latest\""
 VALID_PLATFORMS_JSON="["
 for valid_platform in "${VALID_PLATFORMS[@]}"; do
-	VALID_PLATFORMS_JSON+="\"${valid_platform}\","
+	VALID_PLATFORMS_JSON+="{\"target\":"
+	VALID_PLATFORMS_JSON+="\"${valid_platform%%:*}\","
+	_new_runson="${valid_platform##*:}"
+	VALID_PLATFORMS_JSON+="\"runson\":${_new_runson:-${_default_runson}}},"
 done
 VALID_PLATFORMS_JSON="${VALID_PLATFORMS_JSON%,}]"
 
-echo "matrix={\"target\":${VALID_PLATFORMS_JSON}}" >> $GITHUB_OUTPUT
+echo "matrix={\"include\":${VALID_PLATFORMS_JSON}}" >> $GITHUB_OUTPUT
