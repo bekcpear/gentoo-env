@@ -9,9 +9,9 @@ BUILD_DIR="$(realpath "$1")"
 BUILD_DIR="${BUILD_DIR%/}/_x_build"
 
 NPROC="$(nproc)"
-NLOAD=$(( NPROC / 2 ))
+NLOAD=$(( NPROC - 1 ))
 if (( NPROC < 2 )); then
-	NLOAD=1
+	NLOAD=2
 fi
 
 USE_BINPKG="${2:-0}"
