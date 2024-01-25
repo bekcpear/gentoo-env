@@ -36,7 +36,7 @@ if [[ ${ACCEPT_KEYWORDS} =~ (amd64|arm64)([[:space:]]|$) ]]; then
 	# on other platforms here.
 	SHELLCHECK_PKG="dev-util/shellcheck-bin"
 fi
-_do emerge -ntvj -l$(nproc) $BINPKG_OPTS \
+_do emerge -ntvj -l$NLOAD $BINPKG_OPTS \
 	--autounmask=y \
 	--autounmask-license=y \
 	--autounmask-write=y \

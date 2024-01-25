@@ -35,7 +35,7 @@ _do sha256sum -c ./checksum.txt || \
 # prepare git
 _do tar -xf git-${GIT_VER}.tar.gz
 _do pushd git-${GIT_VER}
-_do make prefix="${BUILD_DIR}/_git" -j$(nproc)
+_do make prefix="${BUILD_DIR}/_git" -j$NPROC
 _do make prefix="${BUILD_DIR}/_git" install
 _do popd
 _GIT="$(realpath _git/bin/git)"
@@ -73,6 +73,15 @@ if [[ ! $ACCEPT_KEYWORDS =~ ^~ ]]; then
 fi
 append_portage_env "net-libs/nodejs corepack" package.use nodejs
 append_portage_env "dev-lang/go::gentoo" package.mask golang
+append_portage_env "MAKEOPTS=\"-j${NPROC}\"" \
+	make.conf 0999-gentoo-env.conf
+if [[ ! $ACCEPT_KEYWORDS =~ amd64 ]]; then
+	# force cmake to use -j1 to compile to try to workaround the problem
+	# of compiling for a long time under qemu.
+	_do mkdir -p /etc/portage/env
+	_do cp "${ROOT_DIR}/_x_configures/make-j1.conf" /etc/portage/env/make-j1
+	append_portage_env "dev-build/cmake make-j1" package.env cmake
+fi
 
 ##
 # prepare neovim
