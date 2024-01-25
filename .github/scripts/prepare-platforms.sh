@@ -4,11 +4,26 @@
 set -e
 
 INPUTS="$1"
+EVENT_NAME="$2"
 FILE="$(realpath "$0")"
 FILE="$(dirname "${FILE}")/../target-platforms.txt"
 
 declare -a PLATFORMS VALID_PLATFORMS
 mapfile -t PLATFORMS <"$FILE"
+
+parse_commit_title() {
+	if [[ "${EVENT_NAME}" != "push" ]]; then
+		return
+	fi
+
+	local title
+	title="$(git log -1 --pretty=format:"%s")"
+	if [[ ! $title =~ \[target:[[:space:]]([^\]]+)\] ]]; then
+		return
+	fi
+	INPUTS="${BASH_REMATCH[1]}"
+}
+parse_commit_title
 
 if [[ "$INPUTS" =~ ^[[:space:]]*$ ]]; then
 	VALID_PLATFORMS=( "${PLATFORMS[@]}" )

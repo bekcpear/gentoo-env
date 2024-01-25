@@ -36,7 +36,7 @@ jobs:
         id: set-matrix
         shell: bash
         run: |
-          ./.github/scripts/prepare-platforms.sh "${{ inputs.platforms }}"
+          ./.github/scripts/prepare-platforms.sh "${{ inputs.platforms }}" "${{ github.event_name }}"
   build-docker:
     needs: prepare-target-platforms
     strategy:
