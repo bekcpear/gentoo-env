@@ -13,6 +13,7 @@ on:
     paths-ignore:
       - '.github/**'
       - '.gitignore'
+      - 'misc/**'
       - 'README.md'
   schedule:
     - cron: '0 3 * * 1'
