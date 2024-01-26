@@ -66,14 +66,14 @@ jobs:
         run: |
           echo "tag=${TAG_NAME##*/}" >>$GITHUB_OUTPUT
           echo "image_name=${IMAGE_NAME}" >>$GITHUB_OUTPUT
-      - name: Build and push
+      - name: Build and load
         uses: docker/build-push-action@v5
         with:
           context: .
           platforms: ${{ matrix.target }}
-          push: true
+          load: true
           tags: ${{ steps.arch-tag.outputs.image_name }}:${{ steps.arch-tag.outputs.tag }}
-      - name: Re-tag to the :latest
+      - name: Push and re-tag to the :latest
         shell: bash
         run: |
-          ./.github/scripts/update-manifest.sh
+          ./.github/scripts/push.sh

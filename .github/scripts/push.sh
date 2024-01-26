@@ -12,6 +12,8 @@ _do() {
 	"$@"
 }
 
+_do docker push --all-tags "$IMAGE_NAME"
+
 declare -a IMAGES
 for tag in "${TAGS[@]}"; do
 	tag="${tag%%:*}"
