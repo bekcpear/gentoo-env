@@ -44,6 +44,8 @@ jobs:
       matrix: ${{ fromJson(needs.prepare-target-platforms.outputs.matrix) }}
     name: build-docker, ${{ matrix.target }}
     runs-on: ${{ matrix.runson }}
+    env:
+      IMAGE_NAME: ghcr.io/bekcpear/gentoo-env
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -57,10 +59,21 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Generate architecture tag
+        id: arch-tag
+        env:
+          TAG_NAME: ${{ matrix.target }}
+        run: |
+          echo "tag=${TAG_NAME##*/}" >>$GITHUB_OUTPUT
+          echo "image_name=${IMAGE_NAME}" >>$GITHUB_OUTPUT
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
           context: .
           platforms: ${{ matrix.target }}
           push: true
-          tags: ghcr.io/bekcpear/gentoo-env:latest
+          tags: ${{ steps.arch-tag.outputs.image_name }}:${{ steps.arch-tag.outputs.tag }}
+      - name: Re-tag to the :latest
+        shell: bash
+        run: |
+          ./.github/scripts/update-manifest.sh
