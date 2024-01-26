@@ -37,13 +37,14 @@ jobs:
         shell: bash
         run: |
           ./.github/scripts/prepare-platforms.sh "${{ inputs.platforms }}" "${{ github.event_name }}"
-  build-docker:
+  build-image:
     needs: prepare-target-platforms
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.prepare-target-platforms.outputs.matrix) }}
     name: build-docker, ${{ matrix.target }}
     runs-on: ${{ matrix.runson }}
+    timeout-minutes: 600
     env:
       IMAGE_NAME: ghcr.io/bekcpear/gentoo-env
     steps:
