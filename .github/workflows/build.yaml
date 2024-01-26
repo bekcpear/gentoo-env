@@ -43,7 +43,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.prepare-target-platforms.outputs.matrix) }}
-    name: build-docker, ${{ matrix.target }}
+    name: build-image, ${{ matrix.target }}
     runs-on: ${{ matrix.runson }}
     timeout-minutes: 600
     env:
