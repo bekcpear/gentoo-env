@@ -33,6 +33,8 @@ if [[ ${ACCEPT_KEYWORDS} =~ (amd64|arm64)([[:space:]]|$) ]]; then
 	# to avoid introducing a ghc build, won't install shellcheck
 	# on other platforms here.
 	ADDITIONAL_PKGS+=" dev-util/shellcheck-bin"
+	# The sys-apps/fd is not keyworded on riscv yet
+	ADDITIONAL_PKGS+=" sys-apps/fd"
 fi
 if [[ $BUILD_BINPKGS == 1 ]]; then
 	ADDITIONAL_PKGS+=" net-misc/rclone"
@@ -52,6 +54,7 @@ _do emerge -ntvj -l$NLOAD $BINPKG_OPTS \
 	app-shells/zsh-completions \
 	app-shells/zsh-syntax-highlighting \
 	app-shells/gentoo-zsh-completions \
+	app-text/tree \
 	dev-lang/go \
 	dev-lang/rust-bin \
 	dev-util/checkbashisms \
@@ -60,6 +63,7 @@ _do emerge -ntvj -l$NLOAD $BINPKG_OPTS \
 	dev-vcs/git \
 	net-libs/nodejs \
 	net-misc/curl \
+	sys-apps/ripgrep \
 	sys-devel/clang ${ADDITIONAL_PKGS}
 _do emerge -c
 _do eix-update
