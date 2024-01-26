@@ -7,23 +7,21 @@ set -e
 source "$(dirname "$0")/init-common.sh"
 
 trap '
+if [[ $BUILD_BINPKGS == 1 ]]; then
+	"$(dirname "$0")/binpkgs-upload.sh" || true
+fi
 _do rm -rf /tmp/*
 _do rm -rf /var/log/emerge*
 _do rm -rf /var/tmp/portage/*
 _do rm -rf /var/cache/distfiles/*
+_do rm -rf /var/cache/binpkgs
 _do rm -rf /var/db/repos/gentoo
 ' EXIT
 
 ##
 # binpkg?
 BINPKG_OPTS=""
-if [[ ! $USE_BINPKG =~ ^0|[fF][aA][lL][sS][eE]$ ]]; then
-	append_portage_env "FEATURES=\"\${FEATURES} binpkg-request-signature\"" \
-		make.conf 0999-gentoo-env.conf
-	_do mv /etc/portage/gnupg /etc/portage/gnupg.bak || true
-	_do getuto
-	_do sed -Ei '/sync-uri = /s@https?://[^/]+/@https://distfiles.gentoo.org/@' \
-		/etc/portage/binrepos.conf/*.conf
+if [[ $USE_BINPKG == 1 ]]; then
 	BINPKG_OPTS+=" --getbinpkg"
 fi
 
@@ -34,8 +32,12 @@ if [[ ${ACCEPT_KEYWORDS} =~ (amd64|arm64)([[:space:]]|$) ]]; then
 	# The shellcheck-bin pkg only available on amd64 and arm64,
 	# to avoid introducing a ghc build, won't install shellcheck
 	# on other platforms here.
-	SHELLCHECK_PKG="dev-util/shellcheck-bin"
+	ADDITIONAL_PKGS+=" dev-util/shellcheck-bin"
 fi
+if [[ $BUILD_BINPKGS == 1 ]]; then
+	ADDITIONAL_PKGS+=" net-misc/rclone"
+fi
+_do mkdir /run/lock
 _do emerge -ntvj -l$NLOAD $BINPKG_OPTS \
 	--autounmask=y \
 	--autounmask-license=y \
@@ -58,7 +60,7 @@ _do emerge -ntvj -l$NLOAD $BINPKG_OPTS \
 	dev-vcs/git \
 	net-libs/nodejs \
 	net-misc/curl \
-	sys-devel/clang ${SHELLCHECK_PKG}
+	sys-devel/clang ${ADDITIONAL_PKGS}
 _do emerge -c
 _do eix-update
 
