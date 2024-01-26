@@ -14,6 +14,7 @@
   - app-shells/zsh-completions
   - app-shells/zsh-syntax-highlighting
   - app-shells/gentoo-zsh-completions
+  - app-text/tree
   - dev-lang/go
   - dev-lang/rust-bin
   - dev-util/checkbashisms
@@ -23,6 +24,8 @@
   - net-libs/nodejs
   - net-misc/curl
   - sys-devel/clang
+  - sys-app/fd (not available on riscv64)
+  - sys-app/ripgrep
   - dev-util/shellcheck-bin (not available on riscv64)
 - default shell is **zsh**
   - with Vi editing mode
