@@ -125,7 +125,7 @@ if [[ $USE_BINPKG == 1 ]]; then
 	_do sed -Ei '/sync-uri = /s@https?://[^/]+/@https://distfiles.gentoo.org/@' \
 		/etc/portage/binrepos.conf/*.conf
 	_do rm -rf /etc/portage/gnupg
-	_do mkdir -p /etc/portage/gnupg
+	_do getuto
 	if [[ $BUILD_BINPKGS == 1 ]]; then
 		# if no binpkgs prepared for this docker imaged,
 		# use the customized binhost is meaningless
@@ -134,7 +134,6 @@ if [[ $USE_BINPKG == 1 ]]; then
 			binrepos.conf ryansbinhost.conf
 		_do gpg --homedir /etc/portage/gnupg --import "$OSSCI_GPG_PUB_FILE"
 	fi
-	_do getuto
 fi
 
 ##
