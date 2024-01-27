@@ -45,7 +45,7 @@ jobs:
       matrix: ${{ fromJson(needs.prepare-target-platforms.outputs.matrix) }}
     name: build-image, ${{ matrix.target }}
     runs-on: ${{ matrix.runson }}
-    timeout-minutes: 600
+    timeout-minutes: ${{ matrix.timeout }}
     env:
       IMAGE_NAME: ghcr.io/bekcpear/gentoo-env
     steps:

@@ -50,13 +50,22 @@ if [[ ${#VALID_PLATFORMS[@]} == 0 ]]; then
 fi
 
 _default_runson="\"ubuntu-latest\""
+_default_timeout=360
 VALID_PLATFORMS_JSON="["
-for valid_platform in "${VALID_PLATFORMS[@]}"; do
-	VALID_PLATFORMS_JSON+="{\"target\":"
-	VALID_PLATFORMS_JSON+="\"${valid_platform%%:*}\","
-	_new_runson="${valid_platform##*:}"
-	VALID_PLATFORMS_JSON+="\"runson\":${_new_runson:-${_default_runson}}},"
-done
+parse_platform() {
+	local line valid_platform runson timeout
+	for line in "${VALID_PLATFORMS[@]}"; do
+		IFS=":" read -r valid_platform runson timeout <<<"$line"
+		VALID_PLATFORMS_JSON+="{\"target\":"
+		VALID_PLATFORMS_JSON+="\"${valid_platform}\","
+		VALID_PLATFORMS_JSON+="\"runson\":"
+		VALID_PLATFORMS_JSON+="${runson:-${_default_runson}},"
+		VALID_PLATFORMS_JSON+="\"timeout\":"
+		VALID_PLATFORMS_JSON+="${timeout:-${_default_timeout}}"
+		VALID_PLATFORMS_JSON+="},"
+	done
+}
+parse_platform
 VALID_PLATFORMS_JSON="${VALID_PLATFORMS_JSON%,}]"
 
 echo "matrix={\"include\":${VALID_PLATFORMS_JSON}}" >> $GITHUB_OUTPUT
