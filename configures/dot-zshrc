@@ -70,3 +70,4 @@ D_RPROMPT=" %F{238}%* @%D{%f}%f"
 #export SHELLCHECK_ARGUMENTS="-e 2120 -e 2317"
 alias ls="ls --color=auto"
 alias vim="nvim"
+source ~/first-time-hint-8c7904da376d.sh

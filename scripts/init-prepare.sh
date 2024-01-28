@@ -120,6 +120,7 @@ _do cp "${ROOT_DIR}/_x_configures/tmux.conf" /etc/tmux.conf
 ##
 # prepare zsh
 _do cp "${ROOT_DIR}/_x_configures/dot-zshrc" ~/.zshrc
+_do cp "${ROOT_DIR}/_x_configures/first-time-hint-8c7904da376d.sh" ~/first-time-hint-8c7904da376d.sh
 # ::gentoo repo has no zsh-autosuggestions yet
 _do mkdir -p ~/.local/share
 _do tar xf zsh-autosuggestions.tar.gz --directory ~/.local/share/
