@@ -8,7 +8,7 @@ source "$(dirname "$0")/init-common.sh"
 
 _do pushd "$BUILD_DIR"
 
-if [[ $BINPKGS_SIGNATURE == 1 ]]; then
+if [[ $BUILD_BINPKGS == 1 ]] && [[ $BINPKGS_SIGNATURE == 1 ]]; then
 	OSSCI_GPG_KEY_FILE="${ROOT_DIR}/_x_gpg_key"
 	if [[ ! -f "$OSSCI_GPG_KEY_FILE" ]]; then
 		echo "GPG key file does not exists" >&2
@@ -89,7 +89,7 @@ if [[ $USE_BINPKG == 1 ]]; then
 	if [[ $BUILD_BINPKGS == 1 ]]; then
 		# if no binpkgs prepared for this docker imaged,
 		# use the customized binhost is meaningless
-		_do sed -Ei "s/@@PLATFORM@@/${PLATFORM}/" "${ROOT_DIR}/_x_configures/ryansbinhost.conf"
+		_do sed -i "s#@@PLATFORM@@#${PLATFORM}#" "${ROOT_DIR}/_x_configures/ryansbinhost.conf"
 		append_portage_env "${ROOT_DIR}/_x_configures/ryansbinhost.conf" \
 			binrepos.conf ryansbinhost.conf
 		if [[ $BINPKGS_SIGNATURE == 1 ]]; then
