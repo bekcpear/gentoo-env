@@ -53,15 +53,17 @@ _default_runson="\"ubuntu-latest\""
 _default_timeout=360
 VALID_PLATFORMS_JSON="["
 parse_platform() {
-	local line valid_platform runson timeout
+	local line valid_platform runson timeout additional_binhost
 	for line in "${VALID_PLATFORMS[@]}"; do
-		IFS=":" read -r valid_platform runson timeout <<<"$line"
+		IFS=":" read -r valid_platform runson timeout additional_binhost <<<"$line"
 		VALID_PLATFORMS_JSON+="{\"target\":"
 		VALID_PLATFORMS_JSON+="\"${valid_platform}\","
 		VALID_PLATFORMS_JSON+="\"runson\":"
 		VALID_PLATFORMS_JSON+="${runson:-${_default_runson}},"
 		VALID_PLATFORMS_JSON+="\"timeout\":"
-		VALID_PLATFORMS_JSON+="${timeout:-${_default_timeout}}"
+		VALID_PLATFORMS_JSON+="${timeout:-${_default_timeout}},"
+		VALID_PLATFORMS_JSON+="\"additional_binhost\":"
+		VALID_PLATFORMS_JSON+="${additional_binhost:-0}"
 		VALID_PLATFORMS_JSON+="},"
 	done
 }

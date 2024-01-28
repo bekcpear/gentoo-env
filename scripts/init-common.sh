@@ -3,6 +3,11 @@
 # @author: Ryan Tsien <i@bitbili.net>
 #
 
+if [[ $PLATFORM == unknown ]]; then
+	echo "unknown platform!" >&2
+	exit 1
+fi
+
 ROOT_DIR="$(realpath "$(dirname "$0")/../")"
 ROOT_DIR="${ROOT_DIR%/}"
 BUILD_DIR="$(realpath "$1")"
@@ -30,9 +35,13 @@ fi
 #   gpg: signing failed: Inappropriate ioctl for device
 #   gpg: signing failed: Inappropriate ioctl for device
 #   !!! GPG unlock failed
-# seems docker does not has a tty when building image
-# so, for now, don't build binpkgs
-BUILD_BINPKGS=0
+# seems docker does not has a tty when building image.
+# so, for now, don't make signature for built binpkgs,
+# but always check the signature for official binpkgs.
+BINPKGS_SIGNATURE=0
+if [[ $BUILD_BINPKGS != 1 ]]; then
+	BINPKGS_SIGNATURE=1
+fi
 
 exec {ANOTHER_STDERR}>&2
 _do() {
@@ -53,6 +62,7 @@ append_portage_env() {
 			_do cat "${line}" >>"$file"
 		else
 			echo "Error: missing file '$line'." >&2
+			return 1
 		fi
 	else
 		_do echo "${line}" >>"$file"

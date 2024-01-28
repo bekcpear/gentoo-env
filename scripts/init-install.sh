@@ -8,7 +8,13 @@ source "$(dirname "$0")/init-common.sh"
 
 trap '
 if [[ $BUILD_BINPKGS == 1 ]]; then
-	"$(dirname "$0")/binpkgs-upload.sh" || true
+	echo "uploading binpkgs ..."
+	PKGDIR="$(portageq envvar PKGDIR)"
+	_do chmod +x /rclone
+	_do /rclone sync -P "$PKGDIR" r2:$PLATFORM/ || true
+	_do rm -rf /rclone
+	_do rm ~/.config/rclone/rclone.conf
+	_do rmdir ~/.config/rclone
 fi
 _do rm -rf /tmp/*
 _do rm -rf /var/log/emerge*
@@ -35,9 +41,10 @@ if [[ ${ACCEPT_KEYWORDS} =~ (amd64|arm64)([[:space:]]|$) ]]; then
 	ADDITIONAL_PKGS+=" dev-util/shellcheck-bin"
 	# The sys-apps/fd is not keyworded on riscv yet
 	ADDITIONAL_PKGS+=" sys-apps/fd"
-fi
-if [[ $BUILD_BINPKGS == 1 ]]; then
-	ADDITIONAL_PKGS+=" net-misc/rclone"
+	# net-libs/nodejs-20.11.0 is not available on riscv64 for now
+	# Issue: https://github.com/nodejs/unofficial-builds/issues/106
+	# BUG: https://bugs.gentoo.org/922725
+	ADDITIONAL_PKGS+=" net-libs/nodejs"
 fi
 _do mkdir /run/lock
 _do emerge -ntvj -l$NLOAD $BINPKG_OPTS \
@@ -50,6 +57,8 @@ _do emerge -ntvj -l$NLOAD $BINPKG_OPTS \
 	app-misc/tmux \
 	app-portage/eix \
 	app-portage/gentoolkit \
+	app-portage/nattka \
+	app-portage/tatt \
 	app-shells/zsh \
 	app-shells/zsh-completions \
 	app-shells/zsh-syntax-highlighting \
@@ -61,7 +70,6 @@ _do emerge -ntvj -l$NLOAD $BINPKG_OPTS \
 	dev-util/pkgdev \
 	dev-util/pkgcheck \
 	dev-vcs/git \
-	net-libs/nodejs \
 	net-misc/curl \
 	sys-apps/ripgrep \
 	sys-devel/clang ${ADDITIONAL_PKGS}

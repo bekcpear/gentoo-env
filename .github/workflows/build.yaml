@@ -73,6 +73,13 @@ jobs:
         with:
           context: .
           platforms: ${{ matrix.target }}
+          build-args: |
+            PLATFORM=${{ matrix.target }}
+            BUILD_BINPKGS=${{ matrix.additional_binhost }}
+          secrets: |
+            "r2_key_id=${{ secrets.R2_KEY_ID }}"
+            "r2_access_key=${{ secrets.R2_ACCESS_KEY }}"
+            "r2_endpoint=${{ secrets.R2_ENDPOINT }}"
           load: true
           tags: ${{ steps.arch-tag.outputs.image_name }}:${{ steps.arch-tag.outputs.tag }}
       - name: Push and re-tag to the :latest

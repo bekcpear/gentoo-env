@@ -6,10 +6,9 @@
 set -e
 source "$(dirname "$0")/init-common.sh"
 
-_do mkdir -p "$BUILD_DIR"
 _do pushd "$BUILD_DIR"
 
-if [[ $BUILD_BINPKGS == 1 ]]; then
+if [[ $BINPKGS_SIGNATURE == 1 ]]; then
 	OSSCI_GPG_KEY_FILE="${ROOT_DIR}/_x_gpg_key"
 	if [[ ! -f "$OSSCI_GPG_KEY_FILE" ]]; then
 		echo "GPG key file does not exists" >&2
@@ -17,8 +16,11 @@ if [[ $BUILD_BINPKGS == 1 ]]; then
 	fi
 	OSSCI_GPG_PASSPHRASE="$(cat "${ROOT_DIR}/_x_gpg_key_pp")"
 fi
-
-GIT_VER=2.43.0
+if [[ $BUILD_BINPKGS == 1 ]]; then
+	R2_KEY_ID="$(cat "${ROOT_DIR}/_x_r2_key_id")"
+	R2_ACCESS_KEY="$(cat "${ROOT_DIR}/_x_r2_access_key")"
+	R2_ENDPOINT="$(cat "${ROOT_DIR}/_x_r2_endpoint")"
+fi
 
 trap '
 _do rm -rf "${BUILD_DIR}"
@@ -26,74 +28,18 @@ _do rm -rf _x_configures
 ' EXIT
 
 ##
-# prepare external resources
-_do wget -O zsh-autosuggestions.tar.gz \
-	https://github.com/zsh-users/zsh-autosuggestions/archive/refs/tags/v0.7.0.tar.gz
-_do wget -O vim-plug.vim \
-	https://github.com/junegunn/vim-plug/raw/034e8445908e828351da6e428022d8487c57ce99/plug.vim
-_do wget -O modified_molokai.vim \
-	https://gist.github.com/bekcpear/6752d661a3fbac5c8344d465c4089a6c/raw/4da3187a94046ed3981fd7adb7a7591e2ced2748/modified_molokai.vim
-_do wget -O coc.vim \
-	https://github.com/bekcpear/dotfiles_of_gentoo_linux/raw/ecf22a8110a2e674f2013d526f7cdca223b0e167/ryan-misc/dot-config/nvim/coc.vim
-_do wget -O gpg.conf \
-	https://gist.github.com/bekcpear/ea30609b36c416b5c0900b73b1525d80/raw/69fb89178ed5f92473301a9cb304aa0cbd1ae14b/gpg.conf
-_do wget -O git-${GIT_VER}.tar.gz https://github.com/git/git/archive/refs/tags/v${GIT_VER}.tar.gz
-_do cp "${ROOT_DIR}/_x_configures/checksum.txt" ./checksum.txt
-_do sha256sum -c ./checksum.txt || \
-	{ echo "Error: sha256sum does not match!" >&2; exit 1; }
-
-##
-# prepare git
-_do tar -xf git-${GIT_VER}.tar.gz
-_do pushd git-${GIT_VER}
-_do make prefix="${BUILD_DIR}/_git" -j$NPROC
-_do make prefix="${BUILD_DIR}/_git" install
-_do popd
-_GIT="$(realpath _git/bin/git)"
-
-##
-# prepare gpg
-_do mkdir -m 700 -p ~/.gnupg
-_do cp gpg.conf ~/.gnupg/gpg.conf
-_do echo allow-preset-passphrase >~/.gnupg/gpg-agent.conf
-_do gpg-connect-agent 'RELOADAGENT' '/bye'
-_do gpg --version
-_do gpg-agent --version
-
-##
-# prepare pub keys
-_do gpg --keyserver hkps://keys.gentoo.org \
-	--recv-keys EF9538C9E8E64311A52CDEDFA13D0EF1914E7A72
-_do gpg --import "${ROOT_DIR}/_x_configures/0x1E100000FA95E6B5.pub"
-if [[ $BUILD_BINPKGS == 1 ]]; then
-	OSSCI_GPG_PUB_FILE="${ROOT_DIR}/_x_configures/0x5F8BF875DABC5698.pub"
-	_do gpg --import "$OSSCI_GPG_PUB_FILE"
-fi
-
-##
-# prepare repos
-get_repos() {
-	local name="$1" url="$2"
-	_do cp "${ROOT_DIR}/_x_configures/${name}.conf" /etc/portage/repos.conf/
-	_do "$_GIT" clone --depth 1 "$url" "/var/db/repos/${name}"
-	_do pushd "/var/db/repos/${name}"
-	REPO_HEAD_COMMIT="$(_do "$_GIT" rev-list -n1 HEAD)"
-	if ! _do "$_GIT" verify-commit --raw "$REPO_HEAD_COMMIT"; then
-		_do "$_GIT" --no-pager log -1 --pretty=fuller "$REPO_HEAD_COMMIT" >&2
-		echo "Error: verify ::${name} repo failed!" >&2
-		exit 1
-	fi
-	_do popd
-}
-_do mkdir -p /etc/portage/repos.conf
-get_repos gentoo "https://github.com/gentoo-mirror/gentoo"
-get_repos ryans "https://github.com/bekcpear/ryans-repos"
-
-##
 # prepare env
-ACCEPT_KEYWORDS="$(_do portageq envvar ACCEPT_KEYWORDS)"
-if [[ ! $ACCEPT_KEYWORDS =~ ^~ ]]; then
-	append_portage_env "ACCEPT_KEYWORDS=\"~$ACCEPT_KEYWORDS\"" \
+STABLE_ACCEPT_KEYWORD=""
+declare -a ACCEPT_KEYWORDS_A
+read -r -a ACCEPT_KEYWORDS_A < <(_do portageq envvar ACCEPT_KEYWORDS)
+for ACCEPT_KEYWORD in "${ACCEPT_KEYWORDS_A[@]}"; do
+	if [[ $ACCEPT_KEYWORD =~ ^~ ]]; then
+		TESTING_ACCEPT_KEYWORDS="${ACCEPT_KEYWORD}"
+	fi
+	STABLE_ACCEPT_KEYWORD="${ACCEPT_KEYWORD#'~'}"
+done
+if [[ -z $TESTING_ACCEPT_KEYWORDS ]]; then
+	append_portage_env "ACCEPT_KEYWORDS=\"${ACCEPT_KEYWORDS_A[*]} ~$STABLE_ACCEPT_KEYWORD\"" \
 		make.conf 0999-gentoo-env.conf
 fi
 append_portage_env "net-libs/nodejs corepack" package.use nodejs
@@ -104,24 +50,38 @@ append_portage_env "MAKEOPTS=\"-j${NPROC}\"" \
 ##
 # prepare binpkgs releated
 if [[ $BUILD_BINPKGS == 1 ]]; then
-	# prepare gpg signature
-	# force set +x here to prevent leaking the privkey & hex-passphrase
-	_OLD_XTRACE="$(set +o | grep xtrace)"
-	set +x
-	gpg --batch --import <"$OSSCI_GPG_KEY_FILE"
-	HEXPP=$(echo -n "$OSSCI_GPG_PASSPHRASE" | od -An -w100 -t x1 | sed 's/\s//g')
-	gpg-connect-agent "PRESET_PASSPHRASE 0322FA1F33708FD3922A5C3655380A38A7533AF9 -1 $HEXPP" '/bye'
-	eval "$_OLD_XTRACE"
 	append_portage_env "${ROOT_DIR}/_x_configures/binpkgs.make.conf.dir/common.conf" \
 		make.conf 0899-gentoo-env-binpkgs.conf
-	append_portage_env "${ROOT_DIR}/_x_configures/binpkgs.make.conf.dir/${ACCEPT_KEYWORDS#~}.conf" \
+	if [[ $BINPKGS_SIGNATURE == 1 ]]; then
+		append_portage_env "${ROOT_DIR}/_x_configures/binpkgs.make.conf.dir/signature.conf" \
+			make.conf 0899-gentoo-env-binpkgs.conf
+	fi
+	append_portage_env "${ROOT_DIR}/_x_configures/binpkgs.make.conf.dir/${STABLE_ACCEPT_KEYWORD}.conf" \
 		make.conf 0899-gentoo-env-binpkgs.conf
+	_do zstd -d "${BUILD_DIR}/rclone-riscv64.zst"
+	_do mv "${BUILD_DIR}/rclone-riscv64" /rclone
 	_do mkdir -p ~/.config/rclone/
 	_do cp "${ROOT_DIR}/_x_configures/rclone.conf" ~/.config/rclone/rclone.conf
+
+	# force set +x here to prevent leaking sensitive info
+	_OLD_XTRACE="$(set +o | grep xtrace)"
+	set +x
+	sed -i "s#@@R2_KEY_ID@@#${R2_KEY_ID}#" ~/.config/rclone/rclone.conf
+	sed -i "s#@@R2_ACCESS_KEY@@#${R2_ACCESS_KEY}#" ~/.config/rclone/rclone.conf
+	sed -i "s#@@R2_ENDPOINT@@#${R2_ENDPOINT}#" ~/.config/rclone/rclone.conf
+	if [[ $BINPKGS_SIGNATURE == 1 ]]; then
+		# prepare gpg signature
+		gpg --batch --import <"$OSSCI_GPG_KEY_FILE"
+		HEXPP=$(echo -n "$OSSCI_GPG_PASSPHRASE" | od -An -w100 -t x1 | sed 's/\s//g')
+		gpg-connect-agent "PRESET_PASSPHRASE 0322FA1F33708FD3922A5C3655380A38A7533AF9 -1 $HEXPP" '/bye'
+	fi
+	eval "$_OLD_XTRACE"
 fi
 if [[ $USE_BINPKG == 1 ]]; then
-	append_portage_env "FEATURES=\"\${FEATURES} binpkg-request-signature\"" \
-		make.conf 0999-gentoo-env.conf
+	if [[ $BINPKGS_SIGNATURE == 1 ]]; then
+		append_portage_env "FEATURES=\"\${FEATURES} binpkg-request-signature\"" \
+			make.conf 0999-gentoo-env.conf
+	fi
 	_do sed -Ei '/sync-uri = /s@https?://[^/]+/@https://distfiles.gentoo.org/@' \
 		/etc/portage/binrepos.conf/*.conf
 	_do rm -rf /etc/portage/gnupg
@@ -129,10 +89,12 @@ if [[ $USE_BINPKG == 1 ]]; then
 	if [[ $BUILD_BINPKGS == 1 ]]; then
 		# if no binpkgs prepared for this docker imaged,
 		# use the customized binhost is meaningless
-		_do sed -Ei "s/@@ARCH@@/${ACCEPT_KEYWORDS#~}/" "${ROOT_DIR}/_x_configures/ryansbinhost.conf"
+		_do sed -Ei "s/@@PLATFORM@@/${PLATFORM}/" "${ROOT_DIR}/_x_configures/ryansbinhost.conf"
 		append_portage_env "${ROOT_DIR}/_x_configures/ryansbinhost.conf" \
 			binrepos.conf ryansbinhost.conf
-		_do gpg --homedir /etc/portage/gnupg --import "$OSSCI_GPG_PUB_FILE"
+		if [[ $BINPKGS_SIGNATURE == 1 ]]; then
+			_do gpg --homedir /etc/portage/gnupg --import "$OSSCI_GPG_PUB_FILE"
+		fi
 	fi
 fi
 
