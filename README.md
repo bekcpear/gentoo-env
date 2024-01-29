@@ -17,6 +17,10 @@
   - app-shells/zsh-syntax-highlighting
   - app-shells/gentoo-zsh-completions
   - app-text/tree
+  - dev-build/cmake
+  - dev-build/meson
+  - dev-build/ninja
+  - dev-java/openjdk-bin (not available on riscv64)
   - dev-lang/go
   - dev-lang/rust-bin
   - dev-util/checkbashisms
@@ -29,6 +33,7 @@
   - sys-app/fd (not available on riscv64)
   - sys-app/ripgrep
   - dev-util/shellcheck-bin (not available on riscv64)
+  - *and all bdeps of above packages*
 - default shell is **zsh**
   - with Vi editing mode
     (comment out line 10 and 11 of file `~/.zshrc` to back to Emacs editing mode)
