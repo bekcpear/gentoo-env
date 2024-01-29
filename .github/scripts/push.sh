@@ -1,6 +1,8 @@
 #!/bin/bash
 #
 
+set -e
+
 FILE="$(realpath "$0")"
 FILE="$(dirname "${FILE}")/../target-platforms.txt"
 declare -a TAGS
