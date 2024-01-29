@@ -27,6 +27,6 @@ for tag in "${TAGS[@]}"; do
 done
 
 if (( ${#IMAGES[@]} > 0 )); then
-	_do docker manifest create "${IMAGE_NAME}:latest" "${IMAGES[@]}"
+	_do docker manifest create --amend "${IMAGE_NAME}:latest" "${IMAGES[@]}"
 	_do docker manifest push "${IMAGE_NAME}:latest"
 fi
