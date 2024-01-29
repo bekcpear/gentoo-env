@@ -10,6 +10,8 @@
   - app-misc/tmux
   - app-portage/eix
   - app-portage/gentoolkit
+  - app-portage/nattka
+  - app-portage/tatt
   - app-shells/zsh
   - app-shells/zsh-completions
   - app-shells/zsh-syntax-highlighting
@@ -21,7 +23,7 @@
   - dev-util/pkgdev
   - dev-util/pkgcheck
   - dev-vcs/git
-  - net-libs/nodejs
+  - net-libs/nodejs (temporarily disabled for riscv64)
   - net-misc/curl
   - sys-devel/clang
   - sys-app/fd (not available on riscv64)
