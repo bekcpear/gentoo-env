@@ -41,6 +41,8 @@ if [[ ${ACCEPT_KEYWORDS} =~ (amd64|arm64)([[:space:]]|$) ]]; then
 	ADDITIONAL_PKGS+=" dev-util/shellcheck-bin"
 	# The sys-apps/fd is not keyworded on riscv yet
 	ADDITIONAL_PKGS+=" sys-apps/fd"
+	# dev-java/openjdk-bin is not available on riscv yet
+	ADDITIONAL_PKGS+=" dev-java/openjdk-bin"
 	# net-libs/nodejs-20.11.0 is not available on riscv64 for now
 	# Issue: https://github.com/nodejs/unofficial-builds/issues/106
 	# BUG: https://bugs.gentoo.org/922725
@@ -48,6 +50,7 @@ if [[ ${ACCEPT_KEYWORDS} =~ (amd64|arm64)([[:space:]]|$) ]]; then
 fi
 _do mkdir /run/lock
 _do emerge -ntvj -l$NLOAD $BINPKG_OPTS \
+	--with-bdeps=y \
 	--autounmask=y \
 	--autounmask-license=y \
 	--autounmask-write=y \
@@ -64,6 +67,9 @@ _do emerge -ntvj -l$NLOAD $BINPKG_OPTS \
 	app-shells/zsh-syntax-highlighting \
 	app-shells/gentoo-zsh-completions \
 	app-text/tree \
+	dev-build/cmake \
+	dev-build/meson \
+	dev-build/ninja \
 	dev-lang/go \
 	dev-lang/rust-bin \
 	dev-util/checkbashisms \
