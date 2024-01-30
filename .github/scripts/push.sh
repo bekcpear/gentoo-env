@@ -16,6 +16,11 @@ _do() {
 
 _do docker push --all-tags "$IMAGE_NAME"
 
+# clean unused images every time finished
+trap '
+_do docker image prune -f
+' EXIT
+
 declare -a IMAGES
 for tag in "${TAGS[@]}"; do
 	tag="${tag%%:*}"
@@ -27,6 +32,7 @@ for tag in "${TAGS[@]}"; do
 done
 
 if (( ${#IMAGES[@]} > 0 )); then
-	_do docker manifest create --amend "${IMAGE_NAME}:latest" "${IMAGES[@]}"
+	_do docker manifest rm "${IMAGE_NAME}:latest" || true
+	_do docker manifest create "${IMAGE_NAME}:latest" "${IMAGES[@]}"
 	_do docker manifest push "${IMAGE_NAME}:latest"
 fi
