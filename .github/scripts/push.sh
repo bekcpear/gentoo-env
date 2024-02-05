@@ -26,9 +26,9 @@ for tag in "${TAGS[@]}"; do
 	tag="${tag%%:*}"
 	tag="${tag##*/}"
 	IMAGE="${IMAGE_NAME}:${tag}"
-	if _do docker manifest inspect "$IMAGE" >/dev/null; then
-		IMAGES+=( "$IMAGE" )
-	fi
+	#if _do docker manifest inspect "$IMAGE" >/dev/null; then
+	IMAGES+=( "$IMAGE" )
+	#fi
 done
 
 if (( ${#IMAGES[@]} > 0 )); then
