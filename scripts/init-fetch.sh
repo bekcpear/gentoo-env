@@ -11,24 +11,34 @@ _do pushd "$BUILD_DIR"
 
 TMP_GIT_VER=2.43.0
 
+fetch() {
+	local url="$2" file="$1" ret=1 tries=3
+	while (( ret != 0 && tries > 0 )); do
+		set +e
+		_do wget --tries=5 --timeout=20 -O "$file" "$url"
+		ret=$?
+		set -e
+		tries=$((tries - 1))
+	done
+}
 ##
 # prepare external resources
-_do wget -O zsh-autosuggestions.tar.gz \
+fetch zsh-autosuggestions.tar.gz \
 	https://github.com/zsh-users/zsh-autosuggestions/archive/refs/tags/v0.7.0.tar.gz
-_do wget -O vim-plug.vim \
+fetch vim-plug.vim \
 	https://github.com/junegunn/vim-plug/raw/034e8445908e828351da6e428022d8487c57ce99/plug.vim
-_do wget -O modified_molokai.vim \
+fetch modified_molokai.vim \
 	https://gist.github.com/bekcpear/6752d661a3fbac5c8344d465c4089a6c/raw/4da3187a94046ed3981fd7adb7a7591e2ced2748/modified_molokai.vim
-_do wget -O coc.vim \
+fetch coc.vim \
 	https://github.com/bekcpear/dotfiles_of_gentoo_linux/raw/ecf22a8110a2e674f2013d526f7cdca223b0e167/ryan-misc/dot-config/nvim/coc.vim
-_do wget -O gpg.conf \
+fetch gpg.conf \
 	https://gist.github.com/bekcpear/ea30609b36c416b5c0900b73b1525d80/raw/69fb89178ed5f92473301a9cb304aa0cbd1ae14b/gpg.conf
 if [[ $PLATFORM == linux/riscv64 ]]; then
-	_do wget -O rclone-riscv64.zst https://binaries.gentoo.storage.oss.ac/rclone-riscv64.zst
-	_do wget -O git-v${TMP_GIT_VER}-usr-bin-rv64-lp64d.tar.zst https://binaries.gentoo.storage.oss.ac/git-v${TMP_GIT_VER}-usr-bin-rv64-lp64d.tar.zst
+	fetch rclone-riscv64.zst https://binaries.gentoo.storage.oss.ac/rclone-riscv64.zst
+	fetch git-v${TMP_GIT_VER}-usr-bin-rv64-lp64d.tar.zst https://binaries.gentoo.storage.oss.ac/git-v${TMP_GIT_VER}-usr-bin-rv64-lp64d.tar.zst
 	_do sed -i "/git-${TMP_GIT_VER}.tar.gz/d" "${ROOT_DIR}/_x_configures/checksum.txt"
 else
-	_do wget -O git-${TMP_GIT_VER}.tar.gz https://github.com/git/git/archive/refs/tags/v${TMP_GIT_VER}.tar.gz
+	fetch git-${TMP_GIT_VER}.tar.gz https://github.com/git/git/archive/refs/tags/v${TMP_GIT_VER}.tar.gz
 	_do sed -i "/git-v${TMP_GIT_VER}-usr-bin-rv64-lp64d.tar.zst/d" "${ROOT_DIR}/_x_configures/checksum.txt"
 	_do sed -i "/rclone-riscv64.zst/d" "${ROOT_DIR}/_x_configures/checksum.txt"
 fi
