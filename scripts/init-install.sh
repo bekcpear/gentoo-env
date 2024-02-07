@@ -43,10 +43,6 @@ if [[ ${ACCEPT_KEYWORDS} =~ (amd64|arm64)([[:space:]]|$) ]]; then
 	ADDITIONAL_PKGS+=" sys-apps/fd"
 	# dev-java/openjdk-bin is not available on riscv yet
 	ADDITIONAL_PKGS+=" dev-java/openjdk-bin"
-	# net-libs/nodejs-20.11.0 is not available on riscv64 for now
-	# Issue: https://github.com/nodejs/unofficial-builds/issues/106
-	# BUG: https://bugs.gentoo.org/922725
-	ADDITIONAL_PKGS+=" net-libs/nodejs"
 fi
 _do mkdir /run/lock
 _do emerge -ntvj -l$NLOAD $BINPKG_OPTS \
@@ -77,6 +73,7 @@ _do emerge -ntvj -l$NLOAD $BINPKG_OPTS \
 	dev-util/pkgdev \
 	dev-util/pkgcheck \
 	dev-vcs/git \
+	net-libs/nodejs \
 	net-misc/curl \
 	sys-apps/ripgrep \
 	sys-devel/clang ${ADDITIONAL_PKGS}
