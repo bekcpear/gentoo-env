@@ -20,6 +20,7 @@ fetch() {
 		set -e
 		tries=$((tries - 1))
 	done
+	return $ret
 }
 ##
 # prepare external resources
