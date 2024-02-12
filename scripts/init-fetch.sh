@@ -86,7 +86,11 @@ fi
 get_repos() {
 	local name="$1" url="$2"
 	_do cp "${ROOT_DIR}/_x_configures/${name}.conf" /etc/portage/repos.conf/
-	_do "$_GIT" clone --depth 1 "$url" "/var/db/repos/${name}"
+	_do "$_GIT" clone --depth 1 "$url" "/var/db/repos/${name}" || \
+		{
+			_do rm -rf "/var/db/repos/${name}"
+			_do "$_GIT" clone --depth 1 "$url" "/var/db/repos/${name}"
+		}
 	_do pushd "/var/db/repos/${name}"
 	REPO_HEAD_COMMIT="$(_do "$_GIT" rev-list -n1 HEAD)"
 	if ! _do "$_GIT" verify-commit --raw "$REPO_HEAD_COMMIT"; then
