@@ -66,6 +66,8 @@ _do emerge -ntvj -l$NLOAD $BINPKG_OPTS \
 	dev-build/cmake \
 	dev-build/meson \
 	dev-build/ninja \
+	dev-debug/gdb \
+	dev-debug/lldb \
 	dev-debug/strace \
 	dev-lang/go \
 	dev-lang/rust-bin \
