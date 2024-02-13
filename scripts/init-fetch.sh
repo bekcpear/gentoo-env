@@ -81,16 +81,28 @@ if [[ $BUILD_BINPKGS == 1 ]] && [[ $BINPKGS_SIGNATURE == 1 ]]; then
 	_do gpg --import "$OSSCI_GPG_PUB_FILE"
 fi
 
+shallow_clone() {
+	local -i ret=1 tries=5
+	while (( ret != 0 && tries > 0 )); do
+		if (( tries < 5 )); then
+			_do sleep 10
+			_do rm -rf "$2"
+		fi
+		set +e
+		_do "$_GIT" clone --depth 1 "$1" "$2"
+		ret=$?
+		set -e
+		tries=$((tries - 1))
+	done
+	return $ret
+}
+
 ##
 # prepare repos
 get_repos() {
 	local name="$1" url="$2"
 	_do cp "${ROOT_DIR}/_x_configures/${name}.conf" /etc/portage/repos.conf/
-	_do "$_GIT" clone --depth 1 "$url" "/var/db/repos/${name}" || \
-		{
-			_do rm -rf "/var/db/repos/${name}"
-			_do "$_GIT" clone --depth 1 "$url" "/var/db/repos/${name}"
-		}
+	shallow_clone "$url" "/var/db/repos/${name}"
 	_do pushd "/var/db/repos/${name}"
 	REPO_HEAD_COMMIT="$(_do "$_GIT" rev-list -n1 HEAD)"
 	if ! _do "$_GIT" verify-commit --raw "$REPO_HEAD_COMMIT"; then
