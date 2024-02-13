@@ -49,6 +49,7 @@ _do emerge -ntvj -l$NLOAD $BINPKG_OPTS \
 	--with-bdeps=y \
 	--autounmask=y \
 	--autounmask-license=y \
+	--autounmask-keep-keywords=y \
 	--autounmask-write=y \
 	--autounmask-continue=y \
 	app-editors/nano \
