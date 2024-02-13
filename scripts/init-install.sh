@@ -43,6 +43,8 @@ if [[ ${ACCEPT_KEYWORDS} =~ (amd64|arm64)([[:space:]]|$) ]]; then
 	ADDITIONAL_PKGS+=" sys-apps/fd"
 	# dev-java/openjdk-bin is not available on riscv yet
 	ADDITIONAL_PKGS+=" dev-java/openjdk-bin"
+	# dev-debug/lldb is not available on riscv yet
+	ADDITIONAL_PKGS+=" dev-debug/lldb"
 fi
 _do mkdir /run/lock
 _do emerge -ntvj -l$NLOAD $BINPKG_OPTS \
@@ -68,7 +70,6 @@ _do emerge -ntvj -l$NLOAD $BINPKG_OPTS \
 	dev-build/meson \
 	dev-build/ninja \
 	dev-debug/gdb \
-	dev-debug/lldb \
 	dev-debug/strace \
 	dev-lang/go \
 	dev-lang/rust-bin \
